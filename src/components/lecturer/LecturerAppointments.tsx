@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, User, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Calendar, Clock, User, CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { supabase, Appointment } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -8,6 +8,9 @@ export function LecturerAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'completed'>('all');
+  const [reschedulingId, setReschedulingId] = useState<string | null>(null);
+  const [newDate, setNewDate] = useState('');
+  const [newTime, setNewTime] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -73,6 +76,38 @@ export function LecturerAppointments() {
       fetchAppointments();
     }
   };
+
+  const handleReschedule = async (appointmentId: string) => {
+    if (!newDate || !newTime) return;
+
+    const { error } = await supabase
+      .from('appointments')
+      .update({
+        appointment_date: newDate,
+        appointment_time: newTime,
+        status: 'confirmed',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', appointmentId);
+
+    if (!error) {
+      const appointment = appointments.find(a => a.id === appointmentId);
+      if (appointment) {
+        await supabase.from('notifications').insert({
+          user_id: appointment.student_id,
+          type: 'appointment',
+          title: 'Appointment Rescheduled',
+          content: `Your appointment has been rescheduled to ${newDate} at ${newTime}`,
+        });
+      }
+      setReschedulingId(null);
+      setNewDate('');
+      setNewTime('');
+      fetchAppointments();
+    }
+  };
+
+  const availableTimes = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -216,9 +251,69 @@ export function LecturerAppointments() {
               )}
 
               {appointment.status === 'confirmed' && (
-                <div className="flex items-center gap-2 text-green-700 bg-green-50 px-4 py-2 rounded-lg">
-                  <AlertCircle className="w-4 h-4" />
-                  <span className="text-sm font-medium">This appointment is confirmed</span>
+                <div className="space-y-3">
+                  {reschedulingId === appointment.id ? (
+                    <div className="p-4 bg-gray-50 rounded-lg space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">New Date</label>
+                          <input
+                            type="date"
+                            value={newDate}
+                            onChange={(e) => setNewDate(e.target.value)}
+                            min={new Date().toISOString().split('T')[0]}
+                            className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 focus:ring-2 focus:ring-cyan-500 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">New Time</label>
+                          <select
+                            value={newTime}
+                            onChange={(e) => setNewTime(e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 focus:ring-2 focus:ring-cyan-500 text-sm"
+                          >
+                            <option value="">Select time</option>
+                            {availableTimes.map((time) => (
+                              <option key={time} value={time}>{time}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleReschedule(appointment.id)}
+                          disabled={!newDate || !newTime}
+                          className="flex-1 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-white font-medium transition-colors text-sm disabled:opacity-50"
+                        >
+                          Confirm Reschedule
+                        </button>
+                        <button
+                          onClick={() => {
+                            setReschedulingId(null);
+                            setNewDate('');
+                            setNewTime('');
+                          }}
+                          className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium transition-colors text-sm"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-green-700 bg-green-50 px-4 py-2 rounded-lg">
+                        <AlertCircle className="w-4 h-4" />
+                        <span className="text-sm font-medium">This appointment is confirmed</span>
+                      </div>
+                      <button
+                        onClick={() => setReschedulingId(appointment.id)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 font-medium transition-colors text-sm"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        Reschedule Appointment
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

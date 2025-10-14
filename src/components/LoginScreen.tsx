@@ -3,9 +3,10 @@ import { useAuth } from '../contexts/AuthContext';
 
 interface LoginScreenProps {
   onSwitchToSignUp: () => void;
+  onForgotPassword: () => void;
 }
 
-export function LoginScreen({ onSwitchToSignUp }: LoginScreenProps) {
+export function LoginScreen({ onSwitchToSignUp, onForgotPassword }: LoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -84,6 +85,7 @@ export function LoginScreen({ onSwitchToSignUp }: LoginScreenProps) {
 
             <button
               type="button"
+              onClick={onForgotPassword}
               className="w-full text-gray-600 text-sm hover:text-gray-800"
             >
               FORGOT PASSWORD

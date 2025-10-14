@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Search, User, MapPin, Phone, Mail } from 'lucide-react';
+import { Search, User, MapPin, Phone, Mail, MessageSquare } from 'lucide-react';
 import { supabase, Profile, LecturerStatus } from '../../lib/supabase';
 import { AppointmentBooking } from './AppointmentBooking';
 
-export function LecturerSearch() {
+interface LecturerSearchProps {
+  onMessageLecturer?: (lecturer: Profile) => void;
+}
+
+export function LecturerSearch({ onMessageLecturer }: LecturerSearchProps = {}) {
   const [searchTerm, setSearchTerm] = useState('');
   const [lecturers, setLecturers] = useState<Profile[]>([]);
   const [lecturerStatuses, setLecturerStatuses] = useState<Record<string, LecturerStatus>>({});
@@ -157,12 +161,21 @@ export function LecturerSearch() {
                       )}
                     </div>
 
-                    <button
-                      onClick={() => setSelectedLecturer(lecturer)}
-                      className="px-6 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-white font-medium transition-colors"
-                    >
-                      Book Appointment
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setSelectedLecturer(lecturer)}
+                        className="flex-1 px-6 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-white font-medium transition-colors"
+                      >
+                        Book Appointment
+                      </button>
+                      <button
+                        onClick={() => onMessageLecturer?.(lecturer)}
+                        className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium transition-colors"
+                        title="Send message"
+                      >
+                        <MessageSquare className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

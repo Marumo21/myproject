@@ -1,9 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { Send, Search, ArrowLeft } from 'lucide-react';
 import { supabase, Profile, Message } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
-export function MessagesView() {
+export interface MessagesViewRef {
+  selectUser: (user: Profile) => void;
+}
+
+export const MessagesView = forwardRef<MessagesViewRef>((props, ref) => {
   const { user, profile } = useAuth();
   const [conversations, setConversations] = useState<Profile[]>([]);
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
@@ -139,6 +143,15 @@ export function MessagesView() {
     return colors[index];
   };
 
+  useImperativeHandle(ref, () => ({
+    selectUser: (user: Profile) => {
+      if (!conversations.find(c => c.id === user.id)) {
+        setConversations(prev => [user, ...prev]);
+      }
+      setSelectedUser(user);
+    },
+  }));
+
   const filteredConversations = conversations.filter((conv) =>
     conv.full_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -265,4 +278,4 @@ export function MessagesView() {
       </div>
     </div>
   );
-}
+});

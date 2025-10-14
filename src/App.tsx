@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginScreen } from './components/LoginScreen';
 import { SignUpScreen } from './components/SignUpScreen';
+import { ForgotPassword } from './components/ForgotPassword';
 import { StudentDashboard } from './components/student/StudentDashboard';
 import { LecturerDashboard } from './components/lecturer/LecturerDashboard';
 
 function AppContent() {
   const { user, profile, loading } = useAuth();
   const [showSignUp, setShowSignUp] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   if (loading) {
     return (
@@ -21,10 +23,17 @@ function AppContent() {
   }
 
   if (!user || !profile) {
+    if (showForgotPassword) {
+      return <ForgotPassword onBack={() => setShowForgotPassword(false)} />;
+    }
+
     return showSignUp ? (
       <SignUpScreen onSwitchToLogin={() => setShowSignUp(false)} />
     ) : (
-      <LoginScreen onSwitchToSignUp={() => setShowSignUp(true)} />
+      <LoginScreen
+        onSwitchToSignUp={() => setShowSignUp(true)}
+        onForgotPassword={() => setShowForgotPassword(true)}
+      />
     );
   }
 

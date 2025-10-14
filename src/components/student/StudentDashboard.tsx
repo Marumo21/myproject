@@ -1,13 +1,21 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { LecturerSearch } from './LecturerSearch';
 import { StudentAppointments } from './StudentAppointments';
-import { MessagesView } from '../shared/MessagesView';
+import { MessagesView, MessagesViewRef } from '../shared/MessagesView';
 import { LogOut, Calendar, MessageSquare, Search } from 'lucide-react';
 
 export function StudentDashboard() {
   const { profile, signOut } = useAuth();
   const [currentView, setCurrentView] = useState<'search' | 'appointments' | 'messages'>('search');
+  const messagesRef = useRef<MessagesViewRef>(null);
+
+  const handleMessageLecturer = (lecturer: any) => {
+    setCurrentView('messages');
+    setTimeout(() => {
+      messagesRef.current?.selectUser(lecturer);
+    }, 100);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -78,9 +86,9 @@ export function StudentDashboard() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 py-6">
-        {currentView === 'search' && <LecturerSearch />}
+        {currentView === 'search' && <LecturerSearch onMessageLecturer={handleMessageLecturer} />}
         {currentView === 'appointments' && <StudentAppointments />}
-        {currentView === 'messages' && <MessagesView />}
+        {currentView === 'messages' && <MessagesView ref={messagesRef} />}
       </main>
     </div>
   );

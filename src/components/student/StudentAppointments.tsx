@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Calendar, Clock, User, MapPin } from 'lucide-react';
+import { Calendar, Clock, User, MapPin, RefreshCw } from 'lucide-react';
 import { supabase, Appointment } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -7,6 +7,9 @@ export function StudentAppointments() {
   const { user } = useAuth();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reschedulingId, setReschedulingId] = useState<string | null>(null);
+  const [newDate, setNewDate] = useState('');
+  const [newTime, setNewTime] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -58,6 +61,38 @@ export function StudentAppointments() {
       fetchAppointments();
     }
   };
+
+  const handleReschedule = async (appointmentId: string) => {
+    if (!newDate || !newTime) return;
+
+    const { error } = await supabase
+      .from('appointments')
+      .update({
+        appointment_date: newDate,
+        appointment_time: newTime,
+        status: 'pending',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', appointmentId);
+
+    if (!error) {
+      const appointment = appointments.find(a => a.id === appointmentId);
+      if (appointment) {
+        await supabase.from('notifications').insert({
+          user_id: appointment.lecturer_id,
+          type: 'appointment',
+          title: 'Appointment Rescheduled',
+          content: `A student has rescheduled their appointment to ${newDate} at ${newTime}`,
+        });
+      }
+      setReschedulingId(null);
+      setNewDate('');
+      setNewTime('');
+      fetchAppointments();
+    }
+  };
+
+  const availableTimes = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
 
   if (loading) {
     return (
@@ -123,13 +158,75 @@ export function StudentAppointments() {
                 </div>
               )}
 
-              {appointment.status === 'pending' && (
-                <button
-                  onClick={() => handleCancelAppointment(appointment.id)}
-                  className="px-4 py-2 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 font-medium transition-colors text-sm"
-                >
-                  Cancel Appointment
-                </button>
+              {(appointment.status === 'pending' || appointment.status === 'confirmed') && (
+                <div className="space-y-3">
+                  {reschedulingId === appointment.id ? (
+                    <div className="p-4 bg-gray-50 rounded-lg space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">New Date</label>
+                          <input
+                            type="date"
+                            value={newDate}
+                            onChange={(e) => setNewDate(e.target.value)}
+                            min={new Date().toISOString().split('T')[0]}
+                            className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 focus:ring-2 focus:ring-cyan-500 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">New Time</label>
+                          <select
+                            value={newTime}
+                            onChange={(e) => setNewTime(e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg bg-white border border-gray-300 focus:ring-2 focus:ring-cyan-500 text-sm"
+                          >
+                            <option value="">Select time</option>
+                            {availableTimes.map((time) => (
+                              <option key={time} value={time}>{time}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleReschedule(appointment.id)}
+                          disabled={!newDate || !newTime}
+                          className="flex-1 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-600 text-white font-medium transition-colors text-sm disabled:opacity-50"
+                        >
+                          Confirm Reschedule
+                        </button>
+                        <button
+                          onClick={() => {
+                            setReschedulingId(null);
+                            setNewDate('');
+                            setNewTime('');
+                          }}
+                          className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium transition-colors text-sm"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setReschedulingId(appointment.id)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 font-medium transition-colors text-sm"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        Reschedule
+                      </button>
+                      {appointment.status === 'pending' && (
+                        <button
+                          onClick={() => handleCancelAppointment(appointment.id)}
+                          className="px-4 py-2 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 font-medium transition-colors text-sm"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           ))}

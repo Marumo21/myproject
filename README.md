@@ -8,12 +8,15 @@ A real-time, full-stack web application for Walter Sisulu University's appointme
 - Search and browse available lecturers
 - View lecturer availability status (Available, Busy, In Meeting, Offline)
 - Book appointments with lecturers
+- Reschedule or cancel appointments
+- Quick message button to contact lecturers directly
 - View appointment history and status
 - Real-time messaging with lecturers
 - Email notifications for appointment updates
 
 ### Lecturer Portal
 - Manage appointment requests (Confirm/Decline)
+- Reschedule confirmed appointments
 - Update availability status
 - Real-time notifications for new appointments
 - Messaging system with students
@@ -78,19 +81,29 @@ All tables have Row Level Security (RLS) enabled for data protection.
 3. Select your role (STUDENT or LECTURER)
 4. Click "SIGN UP"
 
+### Forgot Password
+
+1. Click "FORGOT PASSWORD" on the login screen
+2. Enter your email address
+3. Check your email for the password reset link
+4. Follow the link to create a new password
+
 ### For Students
 
 1. **Find a Lecturer**: Use the search bar to find lecturers by name, email, or department
-2. **Book Appointment**: Click on a lecturer, select date and time, and submit request
-3. **Track Appointments**: View all your appointments and their status in the Appointments tab
-4. **Message Lecturers**: Send direct messages through the Messages tab
+2. **Quick Message**: Click the message icon next to any lecturer to start a conversation immediately
+3. **Book Appointment**: Click on a lecturer, select date and time, and submit request
+4. **Reschedule**: Change appointment date/time for pending or confirmed appointments
+5. **Track Appointments**: View all your appointments and their status in the Appointments tab
+6. **Message Lecturers**: Send direct messages through the Messages tab
 
 ### For Lecturers
 
 1. **Manage Profile**: Update your phone number, office location, and department
 2. **Set Status**: Change your availability status (Available, Busy, In Meeting, Offline)
 3. **Handle Requests**: Confirm or decline appointment requests
-4. **Communicate**: Message students directly through the Messages tab
+4. **Reschedule**: Change appointment date/time for confirmed appointments
+5. **Communicate**: Message students directly through the Messages tab
 
 ## Key Features
 
