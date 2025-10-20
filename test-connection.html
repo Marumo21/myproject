@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Supabase Connection Test</title>
+</head>
+<body>
+    <h1>Testing Supabase Connection...</h1>
+    <div id="result"></div>
+
+    <script type="module">
+        const supabaseUrl = 'https://vlxafsswsjltirbbqqun.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZseGFmc3N3c2psdGlyYmJxcXVuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAzNzcwNjAsImV4cCI6MjA3NTk1MzA2MH0.U6yGgD1bFQhzCtRLfATmmaBCpZoXq93wm_BdqzwiYc4';
+
+        const resultDiv = document.getElementById('result');
+
+        try {
+            const response = await fetch(`${supabaseUrl}/rest/v1/`, {
+                headers: {
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${supabaseKey}`
+                }
+            });
+
+            if (response.ok) {
+                resultDiv.innerHTML = '<p style="color: green;">✓ Supabase connection successful!</p>';
+            } else {
+                resultDiv.innerHTML = `<p style="color: red;">✗ Connection failed: ${response.status}</p>`;
+            }
+        } catch (error) {
+            resultDiv.innerHTML = `<p style="color: red;">✗ Error: ${error.message}</p>`;
+        }
+    </script>
+</body>
+</html>
